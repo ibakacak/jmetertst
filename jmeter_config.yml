@@ -1,0 +1,47 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- temp
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+
+steps:
+- task: Bash@3
+  displayName: Install Jmeter tool
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your commands here
+      sudo apt-get update
+      sudo apt-get install default-jdk
+      # update-alternatives --config java
+      wget http://www.gtlib.gatech.edu/pub/apache/jmeter/binaries/apache-jmeter-5.2.tgz
+      tar xf apache-jmeter-5.2.tgz
+
+- task: CmdLine@2
+  displayName: 'Run Jmeter test'
+  inputs:
+    script: |
+      cd apache-jmeter-5.2/bin
+      chmod u+x jmeter.sh      
+      ./jmeter.sh -n -f -t /home/vsts/work/1/s/JMeter/CashTransactions_AllMehtods.jmx -l '$(System.DefaultWorkingDirectory)'/JMeterReport/out.xml -e -o '$(System.DefaultWorkingDirectory)'/JMeterReport
+
+
+
+
+- task: PublishTestResults@2
+  displayName: 'Publish test result'
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**.xml'
+    searchFolder: '$(System.DefaultWorkingDirectory)' 
+
+
+
+
+
